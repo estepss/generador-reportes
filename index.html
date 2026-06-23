@@ -144,7 +144,7 @@
       <h2>Secciones dinámicas</h2>
       <div class="actions">
         <button class="secondary" onclick="agregarSeccion()">+ Agregar sección</button>
-        <button class="primary" onclick="window.print()">Descargar como PDF</button>
+        <button class="primary" onclick="descargarPDF()">Descargar como PDF</button>     
       </div>
 
       <div id="secciones"></div>
@@ -241,7 +241,6 @@
       let html = `
         <div class="report-header">
           <h1 class="report-title">${titulo}</h1>
-          <p>Documento generado automáticamente</p>
         </div>
 
         <div class="meta">
@@ -280,5 +279,28 @@
     agregarSeccion();
     generarReporte();
   </script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+function descargarPDF() {
+    const elemento = document.getElementById("reporteVista");
+
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: 'Reporte.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2 },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      })
+      .from(elemento)
+      .save();
+}
+</script>
 </body>
 </html>
