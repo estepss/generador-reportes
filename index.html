@@ -98,6 +98,22 @@
       color: #6b7280;
       font-style: italic;
     }
+     #reporteVista {
+      width: 794px;
+      margin: 0 auto;
+    }
+    
+    .report-section {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    
+    .report-section img {
+      display: block;
+      max-width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+    }
     @media print {
       body { background: white; }
       header, .panel { display: none; }
@@ -111,6 +127,7 @@
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
     }
+    
   </style>
 </head>
 <body>
@@ -284,22 +301,37 @@
 
 <script>
 function descargarPDF() {
-    const elemento = document.getElementById("reporteVista");
+  const elemento = document.getElementById("reporteVista");
+  const titulo = document.getElementById("titulo").value || "Reporte";
 
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: 'Reporte.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2 },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        }
-      })
-      .from(elemento)
-      .save();
+  const nombreArchivo = titulo
+    .trim()
+    .replace(/[<>:"/\\|?*]+/g, "")
+    .replace(/\s+/g, "_");
+
+  html2pdf()
+    .set({
+      margin: [12, 12, 12, 12],
+      filename: `${nombreArchivo}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollY: 0
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait"
+      },
+      pagebreak: {
+        mode: ["avoid-all", "css", "legacy"],
+        avoid: [".report-header", ".meta", ".report-section", "img"]
+      }
+    })
+    .from(elemento)
+    .save();
+}
 }
 </script>
 </body>
