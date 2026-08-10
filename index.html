@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generador de Reportes (Documento) </title>
+  <title>Documentación de Proyecto — Generador de Reportes</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -17,11 +17,14 @@
       color: white;
       padding: 20px 32px;
     }
+    header h1 { margin: 0 0 4px; }
+    header p { margin: 0; opacity: .9; }
     main {
       display: grid;
       grid-template-columns: 420px 1fr;
       gap: 24px;
       padding: 24px;
+      align-items: start;
     }
     .panel, .reporte {
       background: white;
@@ -29,309 +32,709 @@
       padding: 22px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     }
+    .panel { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; }
     label {
       display: block;
       font-weight: bold;
-      margin-top: 14px;
+      margin-top: 12px;
       margin-bottom: 6px;
+      font-size: 13px;
     }
     input, textarea, select {
       width: 100%;
-      padding: 10px;
+      padding: 9px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
+      font-family: inherit;
     }
-    textarea { min-height: 90px; resize: vertical; }
+    textarea { min-height: 70px; resize: vertical; }
     button {
       border: none;
       border-radius: 8px;
       padding: 10px 14px;
       cursor: pointer;
       font-weight: bold;
-      margin-top: 12px;
+      font-size: 13px;
     }
     .primary { background: #2563eb; color: white; }
+    .btn-pdf { background: #b91c1c; color: white; }
+    .btn-word { background: #185abd; color: white; }
     .secondary { background: #e5e7eb; color: #111827; }
     .danger { background: #fee2e2; color: #991b1b; }
-    .section-card {
+    .danger.mini { padding: 4px 8px; font-size: 12px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .download-actions {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 2px solid #e5e7eb;
+      flex-direction: column;
+    }
+    .download-actions button { width: 100%; }
+
+    details.section-block {
       border: 1px solid #e5e7eb;
       border-radius: 10px;
-      padding: 14px;
       margin-top: 14px;
       background: #fafafa;
+      overflow: hidden;
     }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    details.section-block summary {
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #803737;
+      cursor: pointer;
+      list-style: revert;
+    }
+    details.section-block summary:hover { background: #f0e9e9; }
+    .section-body { padding: 4px 14px 16px; }
+    .section-body h3 {
+      font-size: 14px;
+      margin: 16px 0 4px;
+      color: #374151;
+      border-top: 1px dashed #d1d5db;
+      padding-top: 12px;
+    }
+    .section-body h3:first-of-type { border-top: none; padding-top: 0; }
+    .hint { font-size: 12px; color: #6b7280; margin: 4px 0 10px; }
+
+    .row-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+      background: white;
+    }
+    .row-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .row-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+    .row-grid label { margin-top: 0; font-size: 11px; }
+    .chip { background: #e5e7eb; color: #111827; margin-top: 10px; }
+
     .reporte {
       min-height: 900px;
       line-height: 1.5;
     }
-    .report-header {
-      border-bottom: 3px solid #111827;
+    #reporteVista { width: 794px; margin: 0 auto; }
+
+    .doc-header {
+      border-bottom: 3px solid #803737;
       padding-bottom: 12px;
       margin-bottom: 20px;
     }
-    .report-title { margin: 0; font-size: 26px; }
-    .meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 24px;
-      margin: 18px 0;
-      font-size: 14px;
+    .doc-eyebrow {
+      margin: 0 0 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #803737;
     }
-    .report-section {
-      margin-top: 22px;
-      page-break-inside: avoid;
+    .doc-title { margin: 0; font-size: 28px; }
+
+    table.info-table, table.doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 6px;
+      font-size: 13px;
     }
+    table.info-table th, table.info-table td,
+    table.doc-table th, table.doc-table td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.info-table th {
+      width: 220px;
+      background: #f3f1ef;
+    }
+    table.doc-table thead th {
+      background: #803737;
+      color: white;
+    }
+    table.doc-table tbody tr:nth-child(even) { background: #fafafa; }
+
+    .report-section { margin-top: 24px; page-break-inside: avoid; break-inside: avoid; }
     .report-section h2 {
       font-size: 19px;
       border-bottom: 1px solid #d1d5db;
       padding-bottom: 6px;
     }
-    .report-section img {
-      max-width: 100%;
-      margin-top: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-    }
-    .placeholder {
-      color: #6b7280;
-      font-style: italic;
-    }
-     #reporteVista {
-      width: 794px;
-      margin: 0 auto;
-    }
-    
-    .report-section {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
-    
+    .report-section h3 { font-size: 15px; margin: 16px 0 6px; color: #374151; }
     .report-section img {
       display: block;
       max-width: 100%;
       max-height: 420px;
       object-fit: contain;
+      margin-top: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
     }
+    .accesos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      font-size: 13px;
+    }
+    .accesos-grid ul { margin: 6px 0 0; padding-left: 18px; }
+    .accesos-grid li { margin-bottom: 4px; }
+    .placeholder { color: #6b7280; font-style: italic; }
+
     @media print {
       body { background: white; }
       header, .panel { display: none; }
       main { display: block; padding: 0; }
-      .reporte {
-        box-shadow: none;
-        border-radius: 0;
-        padding: 28px;
-      }
+      .reporte { box-shadow: none; border-radius: 0; padding: 28px; }
     }
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+      .accesos-grid { grid-template-columns: 1fr; }
     }
-    
   </style>
 </head>
 <body>
   <header>
-    <h1>Generador de Reportes</h1>
-    <p>Completa los campos, agrega secciones e imágenes, y genera tu reporte.</p>
+    <h1>Documentación de Proyecto</h1>
+    <p>Completa cada sección y descarga el documento final en PDF o Word (.docx).</p>
   </header>
 
   <main>
     <section class="panel">
-      <h2>Datos del documento</h2>
+      <details class="section-block" open>
+        <summary>1. Información General</summary>
+        <div class="section-body">
+          <label for="nombreProyecto">Nombre del proyecto</label>
+          <input id="nombreProyecto" placeholder="Ej: Dashboard de Ventas" oninput="actualizarInfo('nombreProyecto', this.value)" />
 
-      <label for="titulo">Título del reporte</label>
-      <input id="titulo" value="Reporte de Evaluación" oninput="generarReporte()" />
+          <label for="areaResponsable">Área responsable</label>
+          <input id="areaResponsable" placeholder="Ej: Inteligencia de Negocios" oninput="actualizarInfo('areaResponsable', this.value)" />
 
-      <label for="codigo">Código</label>
-      <input id="codigo" placeholder="Ej: REP-001" oninput="generarReporte()" />
+          <label for="stakeholder">Stakeholder</label>
+          <input id="stakeholder" placeholder="Ej: Gerencia de Operaciones" oninput="actualizarInfo('stakeholder', this.value)" />
 
-      <label for="fecha">Fecha</label>
-      <input id="fecha" type="date" oninput="generarReporte()" />
+          <label for="fecha">Fecha de implementación</label>
+          <input id="fecha" type="date" oninput="actualizarInfo('fecha', this.value)" />
 
-      <label for="responsable">Responsable</label>
-      <input id="responsable" placeholder="Nombre de la persona" oninput="generarReporte()" />
+          <label for="desarrollador">Desarrollador</label>
+          <input id="desarrollador" placeholder="Nombre de quien desarrolla" oninput="actualizarInfo('desarrollador', this.value)" />
+        </div>
+      </details>
 
-      <label for="area">Área</label>
-      <input id="area" placeholder="Ej: Operaciones" oninput="generarReporte()" />
+      <details class="section-block" open>
+        <summary>2. Objetivo y Alcance</summary>
+        <div class="section-body">
+          <label for="objetivo">Descripción</label>
+          <textarea id="objetivo" placeholder="Describe brevemente la finalidad del proyecto o proceso..." oninput="actualizarObjetivo(this.value)"></textarea>
+        </div>
+      </details>
 
-      <label for="resumen">Resumen ejecutivo</label>
-      <textarea id="resumen" placeholder="Escribe un resumen breve del reporte..." oninput="generarReporte()"></textarea>
+      <details class="section-block" open>
+        <summary>3. Dependencias</summary>
+        <div class="section-body">
+          <h3>Usuarios involucrados</h3>
+          <div id="tabla-usuarios"></div>
+          <button class="secondary chip" onclick="agregarFila('usuarios')">+ Agregar usuario</button>
 
-      <h2>Secciones dinámicas</h2>
-      <div class="actions">
-        <button class="secondary" onclick="agregarSeccion()">+ Agregar sección</button>
-        <button class="primary" onclick="descargarPDF()">Descargar como PDF</button>     
+          <h3>Accesos necesarios · Carpetas compartidas</h3>
+          <label>Una por línea</label>
+          <textarea placeholder="Ej: \\servidor\reportes\ventas" oninput="actualizarAcceso('carpetas', this.value)"></textarea>
+
+          <h3>Accesos necesarios · Permisos</h3>
+          <label>Uno por línea</label>
+          <textarea placeholder="Ej: Lectura/escritura en carpeta compartida" oninput="actualizarAcceso('permisos', this.value)"></textarea>
+
+          <h3>Accesos necesarios · Aplicaciones requeridas</h3>
+          <label>Una por línea</label>
+          <textarea placeholder="Ej: Power BI Desktop, Power Automate" oninput="actualizarAcceso('aplicaciones', this.value)"></textarea>
+        </div>
+      </details>
+
+      <details class="section-block" open>
+        <summary>4. Procedimiento Paso a Paso</summary>
+        <div class="section-body">
+          <h3>Paso 1 · Copia de archivo puntos BAT</h3>
+          <div id="tabla-paso1"></div>
+          <button class="secondary chip" onclick="agregarFila('paso1')">+ Agregar fila</button>
+
+          <h3>Paso 2 · Actualización de dataflows asociados</h3>
+          <div id="tabla-paso2"></div>
+          <button class="secondary chip" onclick="agregarFila('paso2')">+ Agregar fila</button>
+
+          <h3>Paso 3 · Actualización de modelo semántico</h3>
+          <div id="tabla-paso3"></div>
+          <button class="secondary chip" onclick="agregarFila('paso3')">+ Agregar fila</button>
+        </div>
+      </details>
+
+      <details class="section-block" open>
+        <summary>5. Flujo del Proceso</summary>
+        <div class="section-body">
+          <p class="hint">Opcional: describe el flujo de datos y/o adjunta el diagrama de linaje (Power BI).</p>
+          <label for="flujoDesc">Descripción del flujo</label>
+          <textarea id="flujoDesc" placeholder="Ej: Origen → Dataflow → Dataset → Reporte..." oninput="actualizarFlujo('descripcion', this.value)"></textarea>
+
+          <label>Diagrama / imagen</label>
+          <input type="file" accept="image/*" onchange="cargarImagenFlujo(this)" />
+        </div>
+      </details>
+
+      <details class="section-block" open>
+        <summary>6. Historial de Cambios</summary>
+        <div class="section-body">
+          <div id="tabla-historial"></div>
+          <button class="secondary chip" onclick="agregarFila('historial')">+ Agregar cambio</button>
+        </div>
+      </details>
+
+      <div class="actions download-actions">
+        <button class="btn-pdf" onclick="descargarPDF()">⬇ Descargar como PDF</button>
+        <button class="btn-word" onclick="descargarWord()">⬇ Descargar como Word (.docx)</button>
       </div>
-
-      <div id="secciones"></div>
     </section>
 
-    <section class="reporte" id="reporteVista">
-    </section>
+    <section class="reporte" id="reporteVista"></section>
   </main>
 
   <script>
-    const secciones = [];
+    /* ---------- Modelo de datos ---------- */
+    const data = {
+      info: { nombreProyecto: '', areaResponsable: '', stakeholder: '', fecha: '', desarrollador: '' },
+      objetivo: '',
+      usuarios: [],
+      accesos: { carpetas: '', permisos: '', aplicaciones: '' },
+      paso1: [],
+      paso2: [],
+      paso3: [],
+      flujo: { descripcion: '', imagen: '' },
+      historial: []
+    };
 
-    function inicializarFecha() {
-      const hoy = new Date().toISOString().split('T')[0];
-      document.getElementById('fecha').value = hoy;
+    const TABLAS = {
+      usuarios: { cols: [
+        { key: 'usuario', label: 'Usuario', ph: 'Ej: Juan Pérez' },
+        { key: 'area', label: 'Área', ph: 'Ej: Operaciones' },
+        { key: 'rol', label: 'Rol', ph: 'Ej: Usuario Final' },
+        { key: 'responsabilidad', label: 'Responsabilidad', ph: 'Ej: Validación de información' }
+      ]},
+      paso1: { cols: [
+        { key: 'hora', label: 'Hora' },
+        { key: 'archivo', label: 'Nombre archivo', ph: 'Ej: puntos.bat' },
+        { key: 'origen', label: 'Ruta origen', ph: '\\\\servidor\\origen' },
+        { key: 'destino', label: 'Ruta destino', ph: '\\\\servidor\\destino' }
+      ]},
+      paso2: { cols: [
+        { key: 'hora', label: 'Hora' },
+        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
+        { key: 'dataflow', label: 'Nombre dataflow', ph: 'Ej: DF_Puntos' },
+        { key: 'tabla', label: 'Tabla', ph: 'Ej: fact_puntos' }
+      ]},
+      paso3: { cols: [
+        { key: 'hora', label: 'Hora' },
+        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
+        { key: 'dataset', label: 'Nombre dataset', ph: 'Ej: Dataset Puntos' },
+        { key: 'link', label: 'Link oficial', ph: 'https://app.powerbi.com/...' }
+      ]},
+      historial: { cols: [
+        { key: 'fecha', label: 'Fecha', type: 'date' },
+        { key: 'version', label: 'Versión', ph: 'Ej: 1.1' },
+        { key: 'tipo', label: 'Tipo de cambio', type: 'select', options: [
+          'Visualización → Nueva vista (pestaña)',
+          'Nuevos inputs',
+          'Cambios en métricas (según impacto)',
+          'Cambios en estructura de archivos',
+          'Otro'
+        ]},
+        { key: 'cambio', label: 'Detalle del cambio', ph: 'Describe el cambio realizado' },
+        { key: 'responsable', label: 'Responsable' }
+      ]}
+    };
+
+    /* ---------- Helpers de escape ---------- */
+    function escHtml(t) {
+      return String(t ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('\n', '<br>');
+    }
+    function attrEsc(s) {
+      return String(s ?? '')
+        .replaceAll('&', '&amp;').replaceAll('"', '&quot;')
+        .replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
 
-    function agregarSeccion() {
-      const id = Date.now();
-      secciones.push({ id, titulo: '', contenido: '', imagen: '' });
-      renderizarEditorSecciones();
-      generarReporte();
-    }
-
-    function eliminarSeccion(id) {
-      const index = secciones.findIndex(s => s.id === id);
-      if (index >= 0) secciones.splice(index, 1);
-      renderizarEditorSecciones();
-      generarReporte();
-    }
-
-    function actualizarSeccion(id, campo, valor) {
-      const seccion = secciones.find(s => s.id === id);
-      if (seccion) {
-        seccion[campo] = valor;
-        generarReporte();
+    /* ---------- Editores de tablas dinámicas ---------- */
+    function campoInput(listKey, i, col, valor) {
+      if (col.type === 'select') {
+        return `<div><label>${col.label}</label><select onchange="actualizarFila('${listKey}', ${i}, '${col.key}', this.value)">
+          <option value="">Selecciona...</option>
+          ${col.options.map(o => `<option value="${attrEsc(o)}" ${o === valor ? 'selected' : ''}>${o}</option>`).join('')}
+        </select></div>`;
       }
+      const type = col.type || 'text';
+      return `<div><label>${col.label}</label><input type="${type}" value="${attrEsc(valor)}" placeholder="${attrEsc(col.ph || '')}" oninput="actualizarFila('${listKey}', ${i}, '${col.key}', this.value)" /></div>`;
     }
 
-    function cargarImagen(id, input) {
+    function renderTablaEditor(listKey) {
+      const cfg = TABLAS[listKey];
+      const cont = document.getElementById('tabla-' + listKey);
+      const filas = data[listKey];
+      if (filas.length === 0) {
+        cont.innerHTML = '<p class="placeholder">Sin filas todavía.</p>';
+        return;
+      }
+      cont.innerHTML = filas.map((fila, i) => `
+        <div class="row-card">
+          <div class="row-card-head">
+            <span>Fila ${i + 1}</span>
+            <button class="danger mini" onclick="eliminarFila('${listKey}', ${i})">Eliminar</button>
+          </div>
+          <div class="row-grid">
+            ${cfg.cols.map(col => campoInput(listKey, i, col, fila[col.key])).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function agregarFila(listKey) {
+      const cfg = TABLAS[listKey];
+      const fila = {};
+      cfg.cols.forEach(c => fila[c.key] = '');
+      data[listKey].push(fila);
+      renderTablaEditor(listKey);
+      generarReporte();
+    }
+    function eliminarFila(listKey, i) {
+      data[listKey].splice(i, 1);
+      renderTablaEditor(listKey);
+      generarReporte();
+    }
+    function actualizarFila(listKey, i, key, val) {
+      data[listKey][i][key] = val;
+      generarReporte();
+    }
+
+    function actualizarInfo(key, val) { data.info[key] = val; generarReporte(); }
+    function actualizarObjetivo(val) { data.objetivo = val; generarReporte(); }
+    function actualizarAcceso(key, val) { data.accesos[key] = val; generarReporte(); }
+    function actualizarFlujo(key, val) { data.flujo[key] = val; generarReporte(); }
+
+    function cargarImagenFlujo(input) {
       const file = input.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function(e) {
-        actualizarSeccion(id, 'imagen', e.target.result);
-      };
+      reader.onload = e => { data.flujo.imagen = e.target.result; generarReporte(); };
       reader.readAsDataURL(file);
     }
 
-    function renderizarEditorSecciones() {
-      const contenedor = document.getElementById('secciones');
-      contenedor.innerHTML = '';
-
-      secciones.forEach((seccion, i) => {
-        const div = document.createElement('div');
-        div.className = 'section-card';
-        div.innerHTML = `
-          <h3>Sección ${i + 1}</h3>
-
-          <label>Título de la sección</label>
-          <input placeholder="Ej: Infantes" value="${seccion.titulo}" oninput="actualizarSeccion(${seccion.id}, 'titulo', this.value)" />
-
-          <label>Contenido</label>
-          <textarea placeholder="Escribe el contenido de esta sección..." oninput="actualizarSeccion(${seccion.id}, 'contenido', this.value)">${seccion.contenido}</textarea>
-
-          <label>Imagen / evidencia</label>
-          <input type="file" accept="image/*" onchange="cargarImagen(${seccion.id}, this)" />
-
-          <button class="danger" onclick="eliminarSeccion(${seccion.id})">Eliminar sección</button>
-        `;
-        contenedor.appendChild(div);
-      });
+    /* ---------- Vista previa del reporte ---------- */
+    function filasATabla(headers, filas, cols, vacioTexto) {
+      if (!filas.length) return `<p class="placeholder">${vacioTexto}</p>`;
+      return `<table class="doc-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+        ${filas.map(f => `<tr>${cols.map(c => `<td>${f[c] ? escHtml(f[c]) : '&nbsp;'}</td>`).join('')}</tr>`).join('')}
+      </tbody></table>`;
     }
-
-    function limpiar(texto) {
-      return texto
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;')
-        .replaceAll('\n', '<br>');
+    function listaDesdeTexto(texto) {
+      const items = String(texto || '').split('\n').map(s => s.trim()).filter(Boolean);
+      if (!items.length) return '<p class="placeholder">Sin información registrada.</p>';
+      return `<ul>${items.map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>`;
     }
 
     function generarReporte() {
-      const titulo = limpiar(document.getElementById('titulo').value || 'Reporte');
-      const codigo = limpiar(document.getElementById('codigo').value || '-');
-      const fecha = limpiar(document.getElementById('fecha').value || '-');
-      const responsable = limpiar(document.getElementById('responsable').value || '-');
-      const area = limpiar(document.getElementById('area').value || '-');
-      const resumen = limpiar(document.getElementById('resumen').value || 'Completa el resumen ejecutivo del reporte.');
+      const i = data.info;
+      const titulo = escHtml(i.nombreProyecto) || 'Nombre del proyecto';
 
-      let html = `
-        <div class="report-header">
-          <h1 class="report-title">${titulo}</h1>
+      const html = `
+        <div class="doc-header">
+          <p class="doc-eyebrow">Documentación de Proyecto</p>
+          <h1 class="doc-title">${titulo}</h1>
         </div>
 
-        <div class="meta">
-          <div><strong>Código:</strong> ${codigo}</div>
-          <div><strong>Fecha:</strong> ${fecha}</div>
-          <div><strong>Responsable:</strong> ${responsable}</div>
-          <div><strong>Área:</strong> ${area}</div>
+        <table class="info-table">
+          <tr><th>Nombre del proyecto</th><td>${escHtml(i.nombreProyecto) || '—'}</td></tr>
+          <tr><th>Área responsable</th><td>${escHtml(i.areaResponsable) || '—'}</td></tr>
+          <tr><th>Stakeholder</th><td>${escHtml(i.stakeholder) || '—'}</td></tr>
+          <tr><th>Fecha de implementación</th><td>${escHtml(i.fecha) || '—'}</td></tr>
+          <tr><th>Desarrollador</th><td>${escHtml(i.desarrollador) || '—'}</td></tr>
+        </table>
+
+        <div class="report-section">
+          <h2>2. Objetivo y Alcance</h2>
+          ${data.objetivo.trim() ? `<p>${escHtml(data.objetivo)}</p>` : '<p class="placeholder">Describe brevemente la finalidad del proyecto o proceso.</p>'}
         </div>
 
         <div class="report-section">
-          <h2>1. Resumen ejecutivo</h2>
-          <p>${resumen}</p>
+          <h2>3. Dependencias</h2>
+          <h3>Usuarios involucrados</h3>
+          ${filasATabla(['Usuario', 'Área', 'Rol', 'Responsabilidad'], data.usuarios, ['usuario', 'area', 'rol', 'responsabilidad'], 'Agrega usuarios involucrados en el proceso.')}
+          <h3>Accesos necesarios</h3>
+          <div class="accesos-grid">
+            <div><strong>Carpetas compartidas</strong>${listaDesdeTexto(data.accesos.carpetas)}</div>
+            <div><strong>Permisos</strong>${listaDesdeTexto(data.accesos.permisos)}</div>
+            <div><strong>Aplicaciones requeridas</strong>${listaDesdeTexto(data.accesos.aplicaciones)}</div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <h2>4. Procedimiento Paso a Paso</h2>
+          <h3>Paso 1 · Copia de archivo puntos BAT</h3>
+          ${filasATabla(['Hora', 'Nombre archivo', 'Ruta origen', 'Ruta destino'], data.paso1, ['hora', 'archivo', 'origen', 'destino'], 'Agrega las filas del paso 1.')}
+          <h3>Paso 2 · Actualización de dataflows asociados</h3>
+          ${filasATabla(['Hora', 'Área de trabajo', 'Nombre dataflow', 'Tabla'], data.paso2, ['hora', 'areaTrabajo', 'dataflow', 'tabla'], 'Agrega las filas del paso 2.')}
+          <h3>Paso 3 · Actualización de modelo semántico</h3>
+          ${filasATabla(['Hora', 'Área de trabajo', 'Nombre dataset', 'Link oficial'], data.paso3, ['hora', 'areaTrabajo', 'dataset', 'link'], 'Agrega las filas del paso 3.')}
+        </div>
+
+        <div class="report-section">
+          <h2>5. Flujo del Proceso</h2>
+          ${data.flujo.descripcion.trim() ? `<p>${escHtml(data.flujo.descripcion)}</p>` : '<p class="placeholder">Describe el flujo general del proceso (linaje de datos en Power BI).</p>'}
+          ${data.flujo.imagen ? `<img src="${data.flujo.imagen}" alt="Diagrama de flujo">` : ''}
+        </div>
+
+        <div class="report-section">
+          <h2>6. Historial de Cambios</h2>
+          ${filasATabla(['Fecha', 'Versión', 'Tipo de cambio', 'Cambio', 'Responsable'], data.historial, ['fecha', 'version', 'tipo', 'cambio', 'responsable'], 'Agrega el historial de cambios del proyecto.')}
         </div>
       `;
-
-      if (secciones.length === 0) {
-        html += `<p class="placeholder">Agrega una sección para verla en el reporte.</p>`;
-      }
-
-      secciones.forEach((seccion, i) => {
-        const tituloSec = limpiar(seccion.titulo || `Sección ${i + 1}`);
-        const contenido = limpiar(seccion.contenido || 'Contenido pendiente.');
-        html += `
-          <div class="report-section">
-            <h2>${i + 2}. ${tituloSec}</h2>
-            <p>${contenido}</p>
-            ${seccion.imagen ? `<img src="${seccion.imagen}" alt="Imagen de la sección ${i + 1}">` : ''}
-          </div>
-        `;
-      });
-
       document.getElementById('reporteVista').innerHTML = html;
     }
 
+    /* ---------- Exportar a PDF ---------- */
+    function nombreArchivoBase() {
+      return (data.info.nombreProyecto || 'Documentacion_Proyecto')
+        .trim().replace(/[<>:"/\\|?*]+/g, '').replace(/\s+/g, '_') || 'Documentacion_Proyecto';
+    }
+
+    function descargarPDF() {
+      const elemento = document.getElementById('reporteVista');
+      html2pdf()
+        .set({
+          margin: [12, 12, 12, 12],
+          filename: `${nombreArchivoBase()}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: ['.doc-header', '.info-table', '.report-section', 'img'] }
+        })
+        .from(elemento)
+        .save();
+    }
+
+    /* ---------- Exportar a Word (.docx real, OOXML) ---------- */
+    function xmlEsc(s) {
+      return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    function wPara(text, opts = {}) {
+      const { bold = false, italic = false, size = 20, color = null, align = null, spaceAfter = 140, spaceBefore = 0 } = opts;
+      const lineas = String(text ?? '').split('\n');
+      const rpr = `<w:rPr>${bold ? '<w:b/>' : ''}${italic ? '<w:i/>' : ''}${color ? `<w:color w:val="${color}"/>` : ''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr>`;
+      const runs = lineas.map(l => `<w:r>${rpr}<w:t xml:space="preserve">${xmlEsc(l)}</w:t></w:r>`).join('<w:r><w:br/></w:r>');
+      const ppr = `<w:pPr>${align ? `<w:jc w:val="${align}"/>` : ''}<w:spacing w:before="${spaceBefore}" w:after="${spaceAfter}"/></w:pPr>`;
+      return `<w:p>${ppr}${runs}</w:p>`;
+    }
+    function wHeading(text, level) {
+      const map = {
+        2: { size: 26, color: '803737', before: 240, after: 120 },
+        3: { size: 22, color: '444444', before: 160, after: 80 }
+      };
+      const cfg = map[level] || map[2];
+      return wPara(text, { bold: true, size: cfg.size, color: cfg.color, spaceBefore: cfg.before, spaceAfter: cfg.after });
+    }
+    function wPlaceholder(texto) {
+      return wPara(texto, { italic: true, size: 20, color: '6b7280', spaceAfter: 140 });
+    }
+    function wBulletList(texto) {
+      const items = String(texto || '').split('\n').map(s => s.trim()).filter(Boolean);
+      if (!items.length) return wPlaceholder('Sin información registrada.');
+      return items.map(i => wPara('•  ' + i, { size: 20, spaceAfter: 60 })).join('');
+    }
+
+    function wTable(headers, filas, cols) {
+      const grid = headers.map(() => '<w:gridCol/>').join('');
+      const headerCells = headers.map(h => `<w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:shd w:val="clear" w:fill="803737"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="19"/></w:rPr><w:t xml:space="preserve">${xmlEsc(h)}</w:t></w:r></w:p></w:tc>`).join('');
+      const cuerpoFilas = filas.length ? filas : [null];
+      const dataRows = cuerpoFilas.map(f => {
+        const cells = cols.map(c => {
+          const val = f ? (f[c] || '') : '';
+          return `<w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:sz w:val="19"/></w:rPr><w:t xml:space="preserve">${xmlEsc(val)}</w:t></w:r></w:p></w:tc>`;
+        }).join('');
+        return `<w:tr>${cells}</w:tr>`;
+      }).join('');
+      const borders = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']
+        .map(side => `<w:${side} w:val="single" w:sz="4" w:space="0" w:color="B0B0B0"/>`).join('');
+      return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>${borders}</w:tblBorders><w:tblLook w:val="04A0" w:firstRow="1" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid>${grid}</w:tblGrid><w:tr>${headerCells}</w:tr>${dataRows}</w:tbl>`;
+    }
+
+    function wInfoTable(pairs) {
+      const borders = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']
+        .map(side => `<w:${side} w:val="single" w:sz="4" w:space="0" w:color="B0B0B0"/>`).join('');
+      const rows = pairs.map(([label, val]) => `<w:tr>
+        <w:tc><w:tcPr><w:tcW w:w="2600" w:type="dxa"/><w:shd w:val="clear" w:fill="F3F1EF"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xmlEsc(label)}</w:t></w:r></w:p></w:tc>
+        <w:tc><w:tcPr><w:tcW w:w="6800" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xmlEsc(val || '—')}</w:t></w:r></w:p></w:tc>
+      </w:tr>`).join('');
+      return `<w:tbl><w:tblPr><w:tblW w:w="9400" w:type="dxa"/><w:tblBorders>${borders}</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="2600"/><w:gridCol w:w="6800"/></w:tblGrid>${rows}</w:tbl>`;
+    }
+
+    function construirCuerpoDocx() {
+      const i = data.info;
+      let body = '';
+      body += wPara('DOCUMENTACIÓN DE PROYECTO', { bold: true, size: 20, color: '803737', spaceAfter: 60 });
+      body += wPara(i.nombreProyecto || 'Nombre del proyecto', { bold: true, size: 40, spaceAfter: 240 });
+
+      body += wHeading('1. Información General', 2);
+      body += wInfoTable([
+        ['Nombre del proyecto', i.nombreProyecto],
+        ['Área responsable', i.areaResponsable],
+        ['Stakeholder', i.stakeholder],
+        ['Fecha de implementación', i.fecha],
+        ['Desarrollador', i.desarrollador]
+      ]);
+      body += wPara('', { spaceAfter: 100 });
+
+      body += wHeading('2. Objetivo y Alcance', 2);
+      body += data.objetivo.trim() ? wPara(data.objetivo, { size: 20 }) : wPlaceholder('Describe brevemente la finalidad del proyecto o proceso.');
+
+      body += wHeading('3. Dependencias', 2);
+      body += wHeading('Usuarios involucrados', 3);
+      body += wTable(['Usuario', 'Área', 'Rol', 'Responsabilidad'], data.usuarios, ['usuario', 'area', 'rol', 'responsabilidad']);
+      body += wPara('', { spaceAfter: 100 });
+      body += wHeading('Accesos necesarios', 3);
+      body += wPara('Carpetas compartidas', { bold: true, size: 20, spaceAfter: 60 });
+      body += wBulletList(data.accesos.carpetas);
+      body += wPara('Permisos', { bold: true, size: 20, spaceAfter: 60, spaceBefore: 80 });
+      body += wBulletList(data.accesos.permisos);
+      body += wPara('Aplicaciones requeridas', { bold: true, size: 20, spaceAfter: 60, spaceBefore: 80 });
+      body += wBulletList(data.accesos.aplicaciones);
+
+      body += wHeading('4. Procedimiento Paso a Paso', 2);
+      body += wHeading('Paso 1 · Copia de archivo puntos BAT', 3);
+      body += wTable(['Hora', 'Nombre archivo', 'Ruta origen', 'Ruta destino'], data.paso1, ['hora', 'archivo', 'origen', 'destino']);
+      body += wPara('', { spaceAfter: 100 });
+      body += wHeading('Paso 2 · Actualización de dataflows asociados', 3);
+      body += wTable(['Hora', 'Área de trabajo', 'Nombre dataflow', 'Tabla'], data.paso2, ['hora', 'areaTrabajo', 'dataflow', 'tabla']);
+      body += wPara('', { spaceAfter: 100 });
+      body += wHeading('Paso 3 · Actualización de modelo semántico', 3);
+      body += wTable(['Hora', 'Área de trabajo', 'Nombre dataset', 'Link oficial'], data.paso3, ['hora', 'areaTrabajo', 'dataset', 'link']);
+      body += wPara('', { spaceAfter: 100 });
+
+      body += wHeading('5. Flujo del Proceso', 2);
+      body += data.flujo.descripcion.trim() ? wPara(data.flujo.descripcion, { size: 20 }) : wPlaceholder('Describe el flujo general del proceso (linaje de datos en Power BI).');
+      body += '%%IMAGEN_FLUJO%%';
+
+      body += wHeading('6. Historial de Cambios', 2);
+      body += wTable(['Fecha', 'Versión', 'Tipo de cambio', 'Cambio', 'Responsable'], data.historial, ['fecha', 'version', 'tipo', 'cambio', 'responsable']);
+
+      return body;
+    }
+
+    async function construirImagenDocx(dataUrl) {
+      const match = /^data:image\/(png|jpe?g);base64,(.+)$/i.exec(dataUrl);
+      if (!match) throw new Error('Formato de imagen no soportado');
+      let ext = match[1].toLowerCase();
+      if (ext === 'jpg') ext = 'jpeg';
+      const base64 = match[2];
+
+      const dims = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
+      const maxPx = 600;
+      let w = dims.w, h = dims.h;
+      if (w > maxPx) { h = Math.round(h * (maxPx / w)); w = maxPx; }
+      const cx = Math.round(w * 9525);
+      const cy = Math.round(h * 9525);
+
+      const xml = `<w:p><w:r><w:drawing><wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="1" name="Diagrama"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="Diagrama"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+      return { xml, mediaExt: ext, mediaData: base64 };
+    }
+
+    async function descargarWord() {
+      if (typeof JSZip === 'undefined') {
+        alert('No se pudo cargar la librería para generar el Word. Verifica tu conexión a internet e intenta nuevamente.');
+        return;
+      }
+
+      let cuerpo = construirCuerpoDocx();
+      const zip = new JSZip();
+      const contentTypesExtra = [];
+      const relsExtra = [];
+
+      if (data.flujo.imagen) {
+        try {
+          const { xml, mediaExt, mediaData } = await construirImagenDocx(data.flujo.imagen);
+          cuerpo = cuerpo.replace('%%IMAGEN_FLUJO%%', xml);
+          zip.file(`word/media/image1.${mediaExt}`, mediaData, { base64: true });
+          relsExtra.push(`<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.${mediaExt}"/>`);
+          contentTypesExtra.push(`<Default Extension="${mediaExt}" ContentType="image/${mediaExt}"/>`);
+        } catch (e) {
+          cuerpo = cuerpo.replace('%%IMAGEN_FLUJO%%', '');
+        }
+      } else {
+        cuerpo = cuerpo.replace('%%IMAGEN_FLUJO%%', '');
+      }
+
+      const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${cuerpo}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+
+      const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>${contentTypesExtra.join('')}<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
+
+      const rootRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+
+      const docRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relsExtra.join('')}</Relationships>`;
+
+      zip.file('[Content_Types].xml', contentTypesXml);
+      zip.file('_rels/.rels', rootRelsXml);
+      zip.file('word/document.xml', documentXml);
+      zip.file('word/_rels/document.xml.rels', docRelsXml);
+
+      const contenido = await zip.generateAsync({ type: 'arraybuffer' });
+      const blob = new Blob([contenido], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${nombreArchivoBase()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    /* ---------- Inicialización ---------- */
+    function inicializarFecha() {
+      const hoy = new Date().toISOString().split('T')[0];
+      document.getElementById('fecha').value = hoy;
+      data.info.fecha = hoy;
+    }
+
     inicializarFecha();
-    agregarSeccion();
+    agregarFila('usuarios');
+    agregarFila('paso1');
+    agregarFila('paso2');
+    agregarFila('paso3');
+    agregarFila('historial');
     generarReporte();
   </script>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<script>
-function descargarPDF() {
-  const elemento = document.getElementById("reporteVista");
-  const titulo = document.getElementById("titulo").value || "Reporte";
-
-  const nombreArchivo = titulo
-    .trim()
-    .replace(/[<>:"/\\|?*]+/g, "")
-    .replace(/\s+/g, "_");
-
-  html2pdf()
-    .set({
-      margin: [12, 12, 12, 12],
-      filename: `${nombreArchivo}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        scrollY: 0
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait"
-      },
-      pagebreak: {
-        mode: ["avoid-all", "css", "legacy"],
-        avoid: [".report-header", ".meta", ".report-section", "img"]
-      }
-    })
-    .from(elemento)
-    .save();
-}
-</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 </html>
