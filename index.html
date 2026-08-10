@@ -122,6 +122,26 @@
     .row-grid label { margin-top: 0; font-size: 11px; }
     .chip { background: #e5e7eb; color: #111827; margin-top: 10px; }
 
+    .paso-card {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      background: white;
+    }
+    .paso-card-head {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .paso-titulo-input {
+      flex: 1;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .paso-card-head .danger.mini { flex-shrink: 0; white-space: nowrap; }
+
     .reporte {
       min-height: 900px;
       line-height: 1.5;
@@ -265,17 +285,9 @@
       <details class="section-block" open>
         <summary>4. Procedimiento Paso a Paso</summary>
         <div class="section-body">
-          <h3>Paso 1 · Copia de archivo puntos BAT</h3>
-          <div id="tabla-paso1"></div>
-          <button class="secondary chip" onclick="agregarFila('paso1')">+ Agregar fila</button>
-
-          <h3>Paso 2 · Actualización de dataflows asociados</h3>
-          <div id="tabla-paso2"></div>
-          <button class="secondary chip" onclick="agregarFila('paso2')">+ Agregar fila</button>
-
-          <h3>Paso 3 · Actualización de modelo semántico</h3>
-          <div id="tabla-paso3"></div>
-          <button class="secondary chip" onclick="agregarFila('paso3')">+ Agregar fila</button>
+          <p class="hint">Edita el título de cada paso, agrega filas a su tabla o crea un paso nuevo si el procedimiento lo requiere.</p>
+          <div id="pasos-editor"></div>
+          <button class="secondary chip" onclick="agregarPaso()">+ Agregar paso</button>
         </div>
       </details>
 
@@ -315,9 +327,7 @@
       objetivo: '',
       usuarios: [],
       accesos: { carpetas: '', permisos: '', aplicaciones: '' },
-      paso1: [],
-      paso2: [],
-      paso3: [],
+      pasos: [],
       flujo: { descripcion: '', imagen: '' },
       historial: []
     };
@@ -328,24 +338,6 @@
         { key: 'area', label: 'Área', ph: 'Ej: Operaciones' },
         { key: 'rol', label: 'Rol', ph: 'Ej: Usuario Final' },
         { key: 'responsabilidad', label: 'Responsabilidad', ph: 'Ej: Validación de información' }
-      ]},
-      paso1: { cols: [
-        { key: 'hora', label: 'Hora' },
-        { key: 'archivo', label: 'Nombre archivo', ph: 'Ej: puntos.bat' },
-        { key: 'origen', label: 'Ruta origen', ph: '\\\\servidor\\origen' },
-        { key: 'destino', label: 'Ruta destino', ph: '\\\\servidor\\destino' }
-      ]},
-      paso2: { cols: [
-        { key: 'hora', label: 'Hora' },
-        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
-        { key: 'dataflow', label: 'Nombre dataflow', ph: 'Ej: DF_Puntos' },
-        { key: 'tabla', label: 'Tabla', ph: 'Ej: fact_puntos' }
-      ]},
-      paso3: { cols: [
-        { key: 'hora', label: 'Hora' },
-        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
-        { key: 'dataset', label: 'Nombre dataset', ph: 'Ej: Dataset Puntos' },
-        { key: 'link', label: 'Link oficial', ph: 'https://app.powerbi.com/...' }
       ]},
       historial: { cols: [
         { key: 'fecha', label: 'Fecha', type: 'date' },
@@ -425,6 +417,114 @@
       generarReporte();
     }
 
+    /* ---------- Pasos dinámicos (título editable + tabla propia) ---------- */
+    let pasoIdSeq = 0;
+    const PASO_COLS_DEFAULT = () => ([
+      { key: 'hora', label: 'Hora' },
+      { key: 'detalle', label: 'Detalle' },
+      { key: 'referencia', label: 'Referencia' },
+      { key: 'responsable', label: 'Responsable' }
+    ]);
+
+    function nuevaFilaPaso(cols) {
+      const fila = {};
+      cols.forEach(c => fila[c.key] = '');
+      return fila;
+    }
+    function crearPaso(titulo, cols) {
+      return { id: ++pasoIdSeq, titulo, cols, filas: [nuevaFilaPaso(cols)] };
+    }
+
+    function inicializarPasos() {
+      data.pasos.push(crearPaso('Paso 1 · Copia de archivo puntos BAT', [
+        { key: 'hora', label: 'Hora' },
+        { key: 'archivo', label: 'Nombre archivo', ph: 'Ej: puntos.bat' },
+        { key: 'origen', label: 'Ruta origen', ph: '\\\\servidor\\origen' },
+        { key: 'destino', label: 'Ruta destino', ph: '\\\\servidor\\destino' }
+      ]));
+      data.pasos.push(crearPaso('Paso 2 · Actualización de dataflows asociados', [
+        { key: 'hora', label: 'Hora' },
+        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
+        { key: 'dataflow', label: 'Nombre dataflow', ph: 'Ej: DF_Puntos' },
+        { key: 'tabla', label: 'Tabla', ph: 'Ej: fact_puntos' }
+      ]));
+      data.pasos.push(crearPaso('Paso 3 · Actualización de modelo semántico', [
+        { key: 'hora', label: 'Hora' },
+        { key: 'areaTrabajo', label: 'Área de trabajo', ph: 'Ej: BI - Operaciones' },
+        { key: 'dataset', label: 'Nombre dataset', ph: 'Ej: Dataset Puntos' },
+        { key: 'link', label: 'Link oficial', ph: 'https://app.powerbi.com/...' }
+      ]));
+    }
+
+    function agregarPaso() {
+      data.pasos.push(crearPaso(`Paso ${data.pasos.length + 1}`, PASO_COLS_DEFAULT()));
+      renderPasosEditor();
+      generarReporte();
+    }
+    function eliminarPaso(id) {
+      const idx = data.pasos.findIndex(p => p.id === id);
+      if (idx >= 0) data.pasos.splice(idx, 1);
+      renderPasosEditor();
+      generarReporte();
+    }
+    function actualizarTituloPaso(id, valor) {
+      const paso = data.pasos.find(p => p.id === id);
+      if (paso) { paso.titulo = valor; generarReporte(); }
+    }
+    function agregarFilaPaso(id) {
+      const paso = data.pasos.find(p => p.id === id);
+      if (!paso) return;
+      paso.filas.push(nuevaFilaPaso(paso.cols));
+      renderPasosEditor();
+      generarReporte();
+    }
+    function eliminarFilaPaso(id, i) {
+      const paso = data.pasos.find(p => p.id === id);
+      if (!paso) return;
+      paso.filas.splice(i, 1);
+      renderPasosEditor();
+      generarReporte();
+    }
+    function actualizarFilaPaso(id, i, key, valor) {
+      const paso = data.pasos.find(p => p.id === id);
+      if (!paso) return;
+      paso.filas[i][key] = valor;
+      generarReporte();
+    }
+
+    function renderFilasPaso(paso) {
+      if (!paso.filas.length) return '<p class="placeholder">Sin filas todavía.</p>';
+      return paso.filas.map((fila, i) => `
+        <div class="row-card">
+          <div class="row-card-head">
+            <span>Fila ${i + 1}</span>
+            <button class="danger mini" onclick="eliminarFilaPaso(${paso.id}, ${i})">Eliminar</button>
+          </div>
+          <div class="row-grid">
+            ${paso.cols.map(col => `<div><label>${col.label}</label><input value="${attrEsc(fila[col.key])}" placeholder="${attrEsc(col.ph || '')}" oninput="actualizarFilaPaso(${paso.id}, ${i}, '${col.key}', this.value)" /></div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPasosEditor() {
+      const cont = document.getElementById('pasos-editor');
+      if (!data.pasos.length) {
+        cont.innerHTML = '<p class="placeholder">Sin pasos todavía. Agrega uno con el botón de abajo.</p>';
+        return;
+      }
+      cont.innerHTML = data.pasos.map(paso => `
+        <div class="paso-card">
+          <div class="paso-card-head">
+            <input class="paso-titulo-input" value="${attrEsc(paso.titulo)}" placeholder="Título del paso" oninput="actualizarTituloPaso(${paso.id}, this.value)" />
+            <button class="danger mini" onclick="eliminarPaso(${paso.id})">Eliminar paso</button>
+          </div>
+          ${renderFilasPaso(paso)}
+          <button class="secondary chip" onclick="agregarFilaPaso(${paso.id})">+ Agregar fila</button>
+        </div>
+      `).join('');
+    }
+
     function actualizarInfo(key, val) { data.info[key] = val; generarReporte(); }
     function actualizarObjetivo(val) { data.objetivo = val; generarReporte(); }
     function actualizarAcceso(key, val) { data.accesos[key] = val; generarReporte(); }
@@ -449,6 +549,14 @@
       const items = String(texto || '').split('\n').map(s => s.trim()).filter(Boolean);
       if (!items.length) return '<p class="placeholder">Sin información registrada.</p>';
       return `<ul>${items.map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>`;
+    }
+    function seccionPasosHTML() {
+      if (!data.pasos.length) return '<p class="placeholder">Agrega al menos un paso del procedimiento.</p>';
+      return data.pasos.map(paso => {
+        const headers = paso.cols.map(c => c.label);
+        const keys = paso.cols.map(c => c.key);
+        return `<h3>${escHtml(paso.titulo) || 'Paso sin título'}</h3>${filasATabla(headers, paso.filas, keys, 'Agrega filas a este paso.')}`;
+      }).join('');
     }
 
     function generarReporte() {
@@ -488,12 +596,7 @@
 
         <div class="report-section">
           <h2>4. Procedimiento Paso a Paso</h2>
-          <h3>Paso 1 · Copia de archivo puntos BAT</h3>
-          ${filasATabla(['Hora', 'Nombre archivo', 'Ruta origen', 'Ruta destino'], data.paso1, ['hora', 'archivo', 'origen', 'destino'], 'Agrega las filas del paso 1.')}
-          <h3>Paso 2 · Actualización de dataflows asociados</h3>
-          ${filasATabla(['Hora', 'Área de trabajo', 'Nombre dataflow', 'Tabla'], data.paso2, ['hora', 'areaTrabajo', 'dataflow', 'tabla'], 'Agrega las filas del paso 2.')}
-          <h3>Paso 3 · Actualización de modelo semántico</h3>
-          ${filasATabla(['Hora', 'Área de trabajo', 'Nombre dataset', 'Link oficial'], data.paso3, ['hora', 'areaTrabajo', 'dataset', 'link'], 'Agrega las filas del paso 3.')}
+          ${seccionPasosHTML()}
         </div>
 
         <div class="report-section">
@@ -619,15 +722,14 @@
       body += wBulletList(data.accesos.aplicaciones);
 
       body += wHeading('4. Procedimiento Paso a Paso', 2);
-      body += wHeading('Paso 1 · Copia de archivo puntos BAT', 3);
-      body += wTable(['Hora', 'Nombre archivo', 'Ruta origen', 'Ruta destino'], data.paso1, ['hora', 'archivo', 'origen', 'destino']);
-      body += wPara('', { spaceAfter: 100 });
-      body += wHeading('Paso 2 · Actualización de dataflows asociados', 3);
-      body += wTable(['Hora', 'Área de trabajo', 'Nombre dataflow', 'Tabla'], data.paso2, ['hora', 'areaTrabajo', 'dataflow', 'tabla']);
-      body += wPara('', { spaceAfter: 100 });
-      body += wHeading('Paso 3 · Actualización de modelo semántico', 3);
-      body += wTable(['Hora', 'Área de trabajo', 'Nombre dataset', 'Link oficial'], data.paso3, ['hora', 'areaTrabajo', 'dataset', 'link']);
-      body += wPara('', { spaceAfter: 100 });
+      if (!data.pasos.length) {
+        body += wPlaceholder('Agrega al menos un paso del procedimiento.');
+      }
+      data.pasos.forEach(paso => {
+        body += wHeading(paso.titulo || 'Paso sin título', 3);
+        body += wTable(paso.cols.map(c => c.label), paso.filas, paso.cols.map(c => c.key));
+        body += wPara('', { spaceAfter: 100 });
+      });
 
       body += wHeading('5. Flujo del Proceso', 2);
       body += data.flujo.descripcion.trim() ? wPara(data.flujo.descripcion, { size: 20 }) : wPlaceholder('Describe el flujo general del proceso (linaje de datos en Power BI).');
@@ -727,9 +829,8 @@
 
     inicializarFecha();
     agregarFila('usuarios');
-    agregarFila('paso1');
-    agregarFila('paso2');
-    agregarFila('paso3');
+    inicializarPasos();
+    renderPasosEditor();
     agregarFila('historial');
     generarReporte();
   </script>
